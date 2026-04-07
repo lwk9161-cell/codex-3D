@@ -329,19 +329,20 @@ const deviceOrder = [
   "weather"
 ];
 
+const _MODEL_BASE = "https://github.com/lwk9161-cell/codex-3D/releases/download/v1.0-models/";
 const deviceModelUrls = {
-  pv: "./assets/models/pv.glb",
-  wind: "./assets/models/wind.glb",
-  storage: "./assets/models/storage.glb",
-  dc_center: "./assets/models/dc_center.glb",
-  inverter: "./assets/models/inverter.glb",
-  booster: "./assets/models/booster.glb",
-  grid: "./assets/models/grid.glb",
-  dc_cabinet: "./assets/models/dc_cabinet.glb",
-  dc_charger: "./assets/models/dc_charger.glb",
-  ac_cabinet: "./assets/models/ac_cabinet.glb",
-  ac_charger: "./assets/models/ac_charger.glb",
-  weather: "./assets/models/weather.glb"
+  pv: _MODEL_BASE + "pv.glb",
+  wind: _MODEL_BASE + "wind.glb",
+  storage: _MODEL_BASE + "storage.glb",
+  dc_center: _MODEL_BASE + "dc_center.glb",
+  inverter: _MODEL_BASE + "inverter.glb",
+  booster: _MODEL_BASE + "booster.glb",
+  grid: _MODEL_BASE + "grid.glb",
+  dc_cabinet: _MODEL_BASE + "dc_cabinet.glb",
+  dc_charger: _MODEL_BASE + "dc_charger.glb",
+  ac_cabinet: _MODEL_BASE + "ac_cabinet.glb",
+  ac_charger: _MODEL_BASE + "ac_charger.glb",
+  weather: _MODEL_BASE + "weather.glb"
 };
 
 const deviceModelTuning = {
