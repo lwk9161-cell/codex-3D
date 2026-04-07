@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { clone as cloneSkinned } from "three/addons/utils/SkeletonUtils.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const canvas = document.getElementById("stage");
 window.__energy3DBooted = false;
@@ -33,13 +34,16 @@ const HOME_CAMERA_POSITION = new THREE.Vector3(-28, 46, 34);
 const HOME_CAMERA_TARGET = new THREE.Vector3(2, 1.2, -2);
 camera.position.copy(HOME_CAMERA_POSITION);
 camera.lookAt(HOME_CAMERA_TARGET);
-const CAMERA_FIXED_Y = HOME_CAMERA_POSITION.y;
-const CAMERA_OFFSET_X = HOME_CAMERA_POSITION.x - HOME_CAMERA_TARGET.x;
-const CAMERA_OFFSET_Z = HOME_CAMERA_POSITION.z - HOME_CAMERA_TARGET.z;
-const PAN_MIN_X = -20;
-const PAN_MAX_X = 24;
-const PAN_MIN_Z = -24;
-const PAN_MAX_Z = 18;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.copy(HOME_CAMERA_TARGET);
+controls.minPolarAngle = 0.05;
+controls.maxPolarAngle = Math.PI / 2 - 0.05;
+controls.minDistance = 10;
+controls.maxDistance = 160;
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.screenSpacePanning = true;
+controls.update();
 
 const pmremGenerator = new THREE.PMREMGenerator(renderer);
 const envTexture = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.02).texture;
@@ -1184,9 +1188,9 @@ const ui = {
 
 let selectedDeviceId = "inverter";
 let hoveredDeviceId = null;
-const dragState = { down: false, moved: false, x: 0, y: 0 };
-const DRAG_THRESHOLD = 6;
-const PAN_SCALE = 0.06;
+let _pointerMoved = false;
+let _pointerStartX = 0;
+let _pointerStartY = 0;
 
 async function bootstrapSceneDevices() {
   try {
@@ -1278,46 +1282,17 @@ function pickDevice(clientX, clientY) {
 }
 
 renderer.domElement.addEventListener("pointerdown", (event) => {
-  dragState.down = true;
-  dragState.moved = false;
-  dragState.x = event.clientX;
-  dragState.y = event.clientY;
+  _pointerMoved = false;
+  _pointerStartX = event.clientX;
+  _pointerStartY = event.clientY;
 });
 
 renderer.domElement.addEventListener("pointermove", (event) => {
-  if (dragState.down) {
-    const dx = event.clientX - dragState.x;
-    const dy = event.clientY - dragState.y;
-    if (dx * dx + dy * dy > DRAG_THRESHOLD * DRAG_THRESHOLD) {
-      dragState.moved = true;
-    }
+  const dx = event.clientX - _pointerStartX;
+  const dy = event.clientY - _pointerStartY;
+  if (dx * dx + dy * dy > 36) _pointerMoved = true;
 
-    if (dragState.moved) {
-      const forward = new THREE.Vector3();
-      camera.getWorldDirection(forward);
-      forward.y = 0;
-      forward.normalize();
-
-      const right = new THREE.Vector3();
-      right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
-
-      // "抓取拖拽"手感：鼠标往哪拖，场景就往哪被拉动
-      const move = right.multiplyScalar(-dx * PAN_SCALE).add(forward.multiplyScalar(dy * PAN_SCALE));
-      HOME_CAMERA_TARGET.x += move.x;
-      HOME_CAMERA_TARGET.z += move.z;
-
-      HOME_CAMERA_TARGET.x = Math.max(PAN_MIN_X, Math.min(PAN_MAX_X, HOME_CAMERA_TARGET.x));
-      HOME_CAMERA_TARGET.z = Math.max(PAN_MIN_Z, Math.min(PAN_MAX_Z, HOME_CAMERA_TARGET.z));
-
-      camera.position.x = HOME_CAMERA_TARGET.x + CAMERA_OFFSET_X;
-      camera.position.y = CAMERA_FIXED_Y;
-      camera.position.z = HOME_CAMERA_TARGET.z + CAMERA_OFFSET_Z;
-      dragState.x = event.clientX;
-      dragState.y = event.clientY;
-    }
-  }
-
-  if (dragState.down && dragState.moved) {
+  if (_pointerMoved) {
     hoveredDeviceId = null;
     renderer.domElement.style.cursor = "default";
     hideHoverCard();
@@ -1335,18 +1310,13 @@ renderer.domElement.addEventListener("pointermove", (event) => {
 });
 
 renderer.domElement.addEventListener("click", (event) => {
-  if (dragState.moved) return;
+  if (_pointerMoved) return;
   const id = pickDevice(event.clientX, event.clientY);
   if (!id) return;
   selectedDeviceId = id;
 });
 
-renderer.domElement.addEventListener("pointerup", () => {
-  dragState.down = false;
-});
-
 renderer.domElement.addEventListener("pointerleave", () => {
-  dragState.down = false;
   hoveredDeviceId = null;
   renderer.domElement.style.cursor = "default";
   hideHoverCard();
@@ -1425,8 +1395,7 @@ function tick() {
   animateEquipment(t, dt);
   updateSelection();
 
-  camera.position.y = CAMERA_FIXED_Y;
-  camera.lookAt(HOME_CAMERA_TARGET);
+  controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
