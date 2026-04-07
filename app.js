@@ -15,19 +15,21 @@ if (bootHintEl) {
 const renderer = new THREE.WebGLRenderer({
   canvas,
   antialias: false,
-  alpha: true,
+  alpha: false,
   powerPreference: "high-performance"
 });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
+renderer.toneMappingExposure = 1.05;
 renderer.shadowMap.enabled = false;
 renderer.physicallyCorrectLights = false;
+renderer.setClearColor(0x020609, 1);
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x070d19, 0.0105);
+scene.background = new THREE.Color(0x020609);
+scene.fog = new THREE.FogExp2(0x020609, 0.0092);
 
 const camera = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, 0.1, 260);
 const HOME_CAMERA_POSITION = new THREE.Vector3(-28, 46, 34);
@@ -123,30 +125,41 @@ function createIndustrialCampus() {
 
   const outer = new THREE.Mesh(
     new THREE.PlaneGeometry(260, 260),
-    metal(0x1b2636, 0x1d2b3f, 0.04, 0.58, 0.72)
+    metal(0x040810, 0x08111e, 0.08, 0.16, 0.94)
   );
   outer.rotation.x = -Math.PI / 2;
   outer.position.y = -1.24;
   outer.receiveShadow = true;
   campus.add(outer);
 
-  const outerGrid = new THREE.GridHelper(260, 24, 0x4b5f7b, 0x3f526d);
+  const outerGrid = new THREE.GridHelper(260, 32, 0x1a2e48, 0x0f1e30);
   outerGrid.position.y = -1.19;
-  outerGrid.material.opacity = 0.18;
+  outerGrid.material.opacity = 0.38;
   outerGrid.material.transparent = true;
   campus.add(outerGrid);
 
   const base = new THREE.Mesh(
     new RoundedBoxGeometry(106, 1.4, 76, 8, 0.9),
-    metal(0x111723, 0x121f31, 0.1, 0.48, 0.9)
+    metal(0x060c18, 0x0a1624, 0.12, 0.22, 0.96)
   );
   base.position.y = -0.8;
   base.receiveShadow = true;
   campus.add(base);
 
+  // Reflective deck surface
+  const deckMat = new THREE.MeshPhysicalMaterial({
+    color: 0x0a1120,
+    metalness: 0.96,
+    roughness: 0.10,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.04,
+    envMapIntensity: 2.2,
+    emissive: 0x0d1a2c,
+    emissiveIntensity: 0.06
+  });
   const deck = new THREE.Mesh(
     new RoundedBoxGeometry(98, 0.16, 68, 8, 0.45),
-    metal(0x161d2b, 0x1a2940, 0.06, 0.45, 0.92)
+    deckMat
   );
   deck.position.y = 0.02;
   deck.receiveShadow = true;
@@ -842,32 +855,32 @@ function addFunctionalZones() {
 
 const clayMaterialCache = {
   dark: new THREE.MeshStandardMaterial({
-    color: 0x2f3743,
-    metalness: 0.18,
-    roughness: 0.78,
-    emissive: 0x0f1826,
-    emissiveIntensity: 0.03
-  }),
-  mid: new THREE.MeshStandardMaterial({
-    color: 0x4b5564,
-    metalness: 0.2,
-    roughness: 0.72,
-    emissive: 0x122033,
-    emissiveIntensity: 0.035
-  }),
-  light: new THREE.MeshStandardMaterial({
-    color: 0x6a7586,
-    metalness: 0.2,
-    roughness: 0.66,
-    emissive: 0x16253a,
+    color: 0x141c28,
+    metalness: 0.72,
+    roughness: 0.40,
+    emissive: 0x06101a,
     emissiveIntensity: 0.04
   }),
-  blue: new THREE.MeshStandardMaterial({
-    color: 0x4f6178,
-    metalness: 0.22,
-    roughness: 0.64,
-    emissive: 0x1b3048,
+  mid: new THREE.MeshStandardMaterial({
+    color: 0x1f2c3e,
+    metalness: 0.76,
+    roughness: 0.36,
+    emissive: 0x0a1522,
     emissiveIntensity: 0.045
+  }),
+  light: new THREE.MeshStandardMaterial({
+    color: 0x2e4258,
+    metalness: 0.65,
+    roughness: 0.33,
+    emissive: 0x0e1f30,
+    emissiveIntensity: 0.05
+  }),
+  blue: new THREE.MeshStandardMaterial({
+    color: 0x243650,
+    metalness: 0.80,
+    roughness: 0.28,
+    emissive: 0x0c1a2c,
+    emissiveIntensity: 0.07
   })
 };
 
@@ -1135,22 +1148,41 @@ function createFlow(def) {
   const colors = flowColors[def.type];
   const segmentCount = Math.max(28, Math.floor(curve.getLength() * 1.4));
 
+  // Dark metallic conduit pipe (physical cable housing)
+  const conduit = new THREE.Mesh(
+    new THREE.TubeGeometry(curve, segmentCount, 0.13, 8, false),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x0c1420,
+      metalness: 0.85,
+      roughness: 0.25,
+      transparent: true,
+      opacity: 0.48,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    })
+  );
+  scene.add(conduit);
+
+  // Inner glowing energy core
   const core = new THREE.Mesh(
-    new THREE.TubeGeometry(curve, segmentCount, 0.065, 8, false),
+    new THREE.TubeGeometry(curve, segmentCount, 0.034, 6, false),
     new THREE.MeshBasicMaterial({
       color: colors.main,
-      transparent: false,
-      side: THREE.DoubleSide
+      transparent: true,
+      opacity: 0.92,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     })
   );
   scene.add(core);
 
+  // Outer soft glow halo
   const halo = new THREE.Mesh(
-    new THREE.TubeGeometry(curve, segmentCount, 0.128, 8, false),
+    new THREE.TubeGeometry(curve, segmentCount, 0.10, 8, false),
     new THREE.MeshBasicMaterial({
       color: colors.main,
       transparent: true,
-      opacity: 0.14,
+      opacity: 0.20,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     })
@@ -1159,11 +1191,17 @@ function createFlow(def) {
 
   const particles = [];
   const pulseHeads = [];
-  const particleCount = 4;
+  const particleCount = 5;
   for (let i = 0; i < particleCount; i += 1) {
     const p = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.08, 0),
-      new THREE.MeshBasicMaterial({ color: colors.main, transparent: true, opacity: 0.8 })
+      new THREE.SphereGeometry(0.065, 8, 8),
+      new THREE.MeshBasicMaterial({
+        color: colors.main,
+        transparent: true,
+        opacity: 1.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      })
     );
     scene.add(p);
     particles.push(p);
@@ -1171,8 +1209,14 @@ function createFlow(def) {
 
   for (let i = 0; i < 2; i += 1) {
     const head = new THREE.Mesh(
-      new THREE.SphereGeometry(0.13, 16, 16),
-      new THREE.MeshBasicMaterial({ color: colors.main, transparent: true, opacity: 0.72 })
+      new THREE.SphereGeometry(0.15, 12, 12),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.82,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      })
     );
     scene.add(head);
     pulseHeads.push(head);
@@ -1351,20 +1395,20 @@ function animateFlows(t, dt) {
     flow.particles.forEach((particle, i) => {
       const p = (flow.offset + i / flow.particles.length) % 1;
       particle.position.copy(flow.curve.getPointAt(p));
-      const s = 0.8 + Math.sin(t * 5.4 + i * 0.9 + index) * 0.22;
+      const s = 1.0 + Math.sin(t * 6.0 + i * 1.1 + index) * 0.35;
       particle.scale.setScalar(s);
-      particle.material.opacity = 0.48 + Math.sin(t * 4.2 + i + index) * 0.34;
+      particle.material.opacity = 0.72 + Math.sin(t * 4.8 + i + index) * 0.28;
     });
 
     flow.pulseHeads.forEach((head, i) => {
-      const pulseT = (flow.offset + i * 0.33) % 1;
+      const pulseT = (flow.offset + i * 0.38) % 1;
       head.position.copy(flow.curve.getPointAt(pulseT));
-      const hs = 1 + Math.sin(t * 7 + i * 1.5 + index) * 0.26;
+      const hs = 1.2 + Math.sin(t * 8 + i * 1.8 + index) * 0.38;
       head.scale.setScalar(hs);
-      head.material.opacity = 0.62 + Math.sin(t * 5 + i + index) * 0.28;
+      head.material.opacity = 0.78 + Math.sin(t * 6 + i + index) * 0.22;
     });
 
-    flow.halo.material.opacity = 0.12 + Math.sin(t * 2.5 + index) * 0.05;
+    flow.halo.material.opacity = 0.16 + Math.sin(t * 2.8 + index) * 0.08;
   });
 }
 
