@@ -287,18 +287,18 @@ const deviceInfo = {
 };
 
 const devicePositions = {
-  pv: new THREE.Vector3(-29.6, 0.2, 9.8),
-  wind: new THREE.Vector3(-28.8, 0.2, -7.2),
-  storage: new THREE.Vector3(-19.2, 0.2, 19.8),
-  dc_center: new THREE.Vector3(-6.2, 0.2, 4.8),
-  inverter: new THREE.Vector3(11.6, 0.2, 4.8),
-  booster: new THREE.Vector3(24.8, 0.2, 8.0),
-  grid: new THREE.Vector3(36.5, 0.2, 13.0),
-  dc_cabinet: new THREE.Vector3(-6.2, 0.2, -10.8),
-  dc_charger: new THREE.Vector3(-6.2, 0.2, -22.6),
-  ac_cabinet: new THREE.Vector3(11.6, 0.2, -10.8),
-  ac_charger: new THREE.Vector3(11.6, 0.2, -22.6),
-  weather: new THREE.Vector3(21.2, 0.2, 21.4)
+  pv:         new THREE.Vector3(-30.0, 0.2,  4.0),
+  wind:       new THREE.Vector3(-38.0, 0.2, -2.0),
+  storage:    new THREE.Vector3(  2.0, 0.2,-21.0),
+  dc_center:  new THREE.Vector3(  0.0, 0.2,  0.0),
+  inverter:   new THREE.Vector3( 14.0, 0.2,  0.0),
+  booster:    new THREE.Vector3( 26.0, 0.2, -4.0),
+  grid:       new THREE.Vector3( 38.0, 0.2,-10.0),
+  dc_cabinet: new THREE.Vector3( -2.0, 0.2, 13.0),
+  dc_charger: new THREE.Vector3( -7.0, 0.2, 24.0),
+  ac_cabinet: new THREE.Vector3( 14.0, 0.2, 13.0),
+  ac_charger: new THREE.Vector3( 10.0, 0.2, 24.0),
+  weather:    new THREE.Vector3( 34.0, 0.2,  8.0)
 };
 
 const deviceOrder = [
@@ -348,21 +348,33 @@ const deviceModelTuning = {
 
 const deviceReplicaLayouts = {
   pv: [
-    { x: -7.8, z: 2.7, yawOffset: -0.02, scale: 0.98 },
-    { x: 7.8, z: -2.7, yawOffset: 0.02, scale: 0.98 }
+    { x:  0.0, z: -9.0, yawOffset:  0.01, scale: 0.99 },
+    { x:  0.0, z:-18.0, yawOffset: -0.01, scale: 0.98 }
   ],
   wind: [
-    { x: -7.2, z: 6.4, yawOffset: 0.06, scale: 0.96 },
-    { x: 7.2, z: -6.4, yawOffset: -0.06, scale: 0.96 }
+    { x:  0.0, z: 11.0, yawOffset: 0.08, scale: 0.96 }
   ],
   storage: [
-    { x: -5.3, z: 2.8, yawOffset: 0.02, scale: 0.98 }
+    { x:  7.0, z:  0.0, yawOffset: 0.02, scale: 0.98 }
+  ],
+  inverter: [
+    { x:  0.0, z: -6.0, yawOffset: 0.0, scale: 0.99 }
+  ],
+  dc_cabinet: [
+    { x:  5.5, z:  0.0, yawOffset: 0.0, scale: 0.99 }
   ],
   dc_charger: [
-    { x: 4.4, z: -0.2, yawOffset: -0.01, scale: 0.96 }
+    { x:  5.0, z:  0.0, yawOffset: -0.01, scale: 0.97 },
+    { x: 10.0, z:  0.0, yawOffset:  0.01, scale: 0.97 },
+    { x: 15.0, z:  0.0, yawOffset: -0.01, scale: 0.97 }
+  ],
+  ac_cabinet: [
+    { x:  5.5, z:  0.0, yawOffset: 0.0, scale: 0.99 }
   ],
   ac_charger: [
-    { x: 4.4, z: -0.2, yawOffset: -0.01, scale: 0.96 }
+    { x:  5.0, z:  0.0, yawOffset:  0.01, scale: 0.97 },
+    { x: 10.0, z:  0.0, yawOffset: -0.01, scale: 0.97 },
+    { x: 15.0, z:  0.0, yawOffset:  0.01, scale: 0.97 }
   ]
 };
 
@@ -820,9 +832,12 @@ function createZoneBlock(name, width, depth, color, position) {
 }
 
 function addFunctionalZones() {
-  createZoneBlock("新能源源侧区", 32, 36, 0x5f7da0, new THREE.Vector3(-24.8, 0, 7.4));
-  createZoneBlock("变换与汇流区", 28, 28, 0x7d8ea5, new THREE.Vector3(1.8, 0, 4.0));
-  createZoneBlock("负载与并网区", 42, 44, 0x8f7f7f, new THREE.Vector3(22.4, 0, -5.2));
+  createZoneBlock("新能源源侧区",  22, 30, 0x5f7da0, new THREE.Vector3(-34.0, 0,  -2.0));
+  createZoneBlock("储能区",        18, 10, 0x68c89a, new THREE.Vector3(  5.5, 0, -21.0));
+  createZoneBlock("直流汇流核心",  14, 14, 0x4ea8ff, new THREE.Vector3(  0.0, 0,   0.0));
+  createZoneBlock("交流变换并网区",36, 20, 0x8f7f7f, new THREE.Vector3( 26.0, 0,  -4.0));
+  createZoneBlock("直流充电区",    22, 18, 0x5f7da0, new THREE.Vector3(  2.5, 0,  19.0));
+  createZoneBlock("交流充电区",    22, 18, 0x8f7f7f, new THREE.Vector3( 20.0, 0,  19.0));
 }
 
 const clayMaterialCache = {
@@ -1019,18 +1034,18 @@ function addDevice(id, model, size) {
 }
 
 const flowDefs = [
-  { from: "pv", to: "dc_center", type: "dc", laneX: -17.5, rise: 2.1, corner: 1.05, speed: 0.23 },
-  { from: "wind", to: "dc_center", type: "dc", laneX: -16.2, rise: 2.1, corner: 1.05, speed: 0.22 },
-  { from: "storage", to: "dc_center", type: "storage", laneX: -13.4, rise: 2.3, corner: 1.1, speed: 0.18 },
-  { from: "dc_center", to: "storage", type: "storage", laneX: -12.2, rise: 2.3, corner: 1.1, speed: 0.15 },
-  { from: "dc_center", to: "inverter", type: "dc", laneX: 2.4, rise: 1.7, corner: 0.95, speed: 0.24 },
-  { from: "dc_center", to: "dc_cabinet", type: "dc", laneZ: -3.4, rise: 1.9, corner: 0.9, speed: 0.21 },
-  { from: "dc_cabinet", to: "dc_charger", type: "dc", laneZ: -16.6, rise: 1.8, corner: 0.9, speed: 0.22 },
-  { from: "inverter", to: "booster", type: "ac", laneX: 18.2, rise: 2.0, corner: 1.0, speed: 0.25 },
-  { from: "booster", to: "grid", type: "ac", laneX: 30.6, rise: 1.8, corner: 0.95, speed: 0.19 },
-  { from: "inverter", to: "ac_cabinet", type: "ac", laneZ: -2.8, rise: 1.9, corner: 0.9, speed: 0.21 },
-  { from: "grid", to: "ac_cabinet", type: "ac", laneX: 44.2, rise: 2.5, corner: 1.2, speed: 0.17 },
-  { from: "ac_cabinet", to: "ac_charger", type: "ac", laneZ: -17.1, rise: 1.7, corner: 0.9, speed: 0.21 }
+  { from: "pv",         to: "dc_center",  type: "dc",      laneX: -15.0, rise: 2.2, corner: 1.05, speed: 0.23 },
+  { from: "wind",       to: "dc_center",  type: "dc",      laneX: -19.0, rise: 2.2, corner: 1.05, speed: 0.22 },
+  { from: "storage",    to: "dc_center",  type: "storage",  laneZ: -10.5, rise: 2.4, corner: 1.1,  speed: 0.18 },
+  { from: "dc_center",  to: "storage",    type: "storage",  laneZ: -10.5, rise: 2.4, corner: 1.1,  speed: 0.15 },
+  { from: "dc_center",  to: "inverter",   type: "dc",       laneX:   7.0, rise: 1.8, corner: 0.95, speed: 0.24 },
+  { from: "dc_center",  to: "dc_cabinet", type: "dc",       laneZ:   6.5, rise: 1.9, corner: 0.9,  speed: 0.21 },
+  { from: "dc_cabinet", to: "dc_charger", type: "dc",       laneZ:  18.5, rise: 1.8, corner: 0.9,  speed: 0.22 },
+  { from: "inverter",   to: "booster",    type: "ac",       laneX:  20.0, rise: 2.0, corner: 1.0,  speed: 0.25 },
+  { from: "booster",    to: "grid",       type: "ac",       laneX:  32.0, rise: 1.8, corner: 0.95, speed: 0.19 },
+  { from: "inverter",   to: "ac_cabinet", type: "ac",       laneZ:   6.5, rise: 1.9, corner: 0.9,  speed: 0.21 },
+  { from: "grid",       to: "ac_cabinet", type: "ac",       laneX:  26.0, rise: 2.5, corner: 1.2,  speed: 0.17 },
+  { from: "ac_cabinet", to: "ac_charger", type: "ac",       laneZ:  18.5, rise: 1.7, corner: 0.9,  speed: 0.21 }
 ];
 
 const flowColors = {
